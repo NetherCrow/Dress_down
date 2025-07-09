@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "605830721221",
+    "project_id": "dress-down-1",
+    "storage_bucket": "dress-down-1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:605830721221:android:a5e9c42af13f2586b7caac",
+        "android_client_info": {
+          "package_name": "com.example.dress_down_1"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyARUENkk4Jw0KN8XX-0fhwthBBUpbXnyok"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:605830721221:android:8db9325dfe1087ecb7caac",
+        "android_client_info": {
+          "package_name": "com.example.dress_down_2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyARUENkk4Jw0KN8XX-0fhwthBBUpbXnyok"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
