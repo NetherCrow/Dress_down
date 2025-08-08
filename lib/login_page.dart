@@ -1,14 +1,13 @@
-import 'package:dress_down_2/register_page.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:dress_down_2/services/user_service.dart';
 import 'package:flutter/material.dart';
-
 import 'components/button.dart';
 import 'components/my_textfield.dart';
 import 'forgot_pw_page.dart';
+import 'home_page.dart';
+
 
 class LoginPage extends StatefulWidget {
   final Function()? onTap;
-
   const LoginPage({super.key, required this.onTap});
 
   @override
@@ -16,62 +15,86 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  //text editing controllers
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  bool _rememberMe = false;
 
-  void signUserIn() async {
+  @override
+  void initState() {
+    super.initState();
+    _loadRemembered();
+  }
 
-    //show loading circle
-    showDialog(context: context,
-      builder: (context) {
-        return const Center(
-          child: CircularProgressIndicator(),
-        );
-      },
+  Future<void> _loadRemembered() async {
+    final data = await UserService.loadLoginState();
+
+    if (!mounted) return;
+
+    setState(() {
+      _rememberMe = data['rememberMe'];
+      emailController.text = data['email'];
+    });
+  }
+
+  Future<void> signUserIn() async {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
     );
 
-    //try sign in
-    try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: emailController.text,
-        password: passwordController.text,
-      );
-      //pop
-      Navigator.pop(context);
-    } on FirebaseAuthException catch (e) {
-      //wrong email
-      Navigator.pop(context);
+    final error = await UserService.signInUser(
+      emailController.text.trim(),
+      passwordController.text.trim(),
+    );
 
-      showErrorMessage(e.code);
+    if (!mounted) return;
+    Navigator.pop(context);
+
+    if (error != null) {
+      _showError(error);
+    } else {
+      await UserService.saveLoginState(emailController.text.trim(), _rememberMe);
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const HomePage()),
+      );
     }
   }
 
-  void showErrorMessage(String message) {
-    showDialog(context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: Colors.deepPurple,
-          title: Center(
-              child: Text(
-                message,
-                style: TextStyle(color: Colors.white),
-              )
-          ),
-        );
-      },);
+  void _showError(String message) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        title: Center(
+          child: Text(message, style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
     return Scaffold(
-      backgroundColor: Colors.deepPurple[100],
+      backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
               children: [
-                //LOGO
                 ClipRRect(
                   borderRadius: BorderRadius.circular(119),
                   child: Image.asset(
@@ -82,34 +105,32 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
 
-                SizedBox(height: 30),
+                const SizedBox(height: 30),
 
-                //hello again
                 Text(
                   'Welcome Back',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+                  style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
                 ),
 
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-                //email textfield
                 MyTextField(
                   controller: emailController,
                   hintText: 'Email',
                   obscureText: false,
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
 
-                //password textfield
                 MyTextField(
                   controller: passwordController,
                   hintText: 'Password',
                   obscureText: true,
                 ),
 
-                //forgot password
+                const SizedBox(height: 10),
+
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 25),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -117,17 +138,13 @@ class _LoginPageState extends State<LoginPage> {
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(
-                              builder: (context) {
-                                return ForgotPwPage();
-                                },
-                          ),
+                            MaterialPageRoute(builder: (_) => ForgotPwPage()),
                           );
                         },
                         child: Text(
                           'Forgot Password?',
                           style: TextStyle(
-                            color: Colors.blue,
+                            color: colorScheme.secondary,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -136,43 +153,40 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
 
-                SizedBox(height: 30),
+                Row(
+                  children: [
+                    Checkbox(
+                      value: _rememberMe,
+                      activeColor: colorScheme.primary,
+                      onChanged: (val) {
+                        setState(() => _rememberMe = val ?? false);
+                      },
+                    ),
+                    Text('Remember Me', style: textTheme.bodyMedium),
+                  ],
+                ),
 
-                //Login button
+                const SizedBox(height: 20),
                 Button(text: 'Login', onTap: signUserIn),
-
-                //not a member? register now
-                const SizedBox(height: 50),
+                const SizedBox(height: 40),
 
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      'Not a member?',
-                      style: TextStyle(color: Colors.grey[700]),
-                    ),
+                    Text('Not a member?', style: textTheme.bodyMedium),
                     const SizedBox(width: 4),
                     GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) {
-                              return RegisterPage(onTap: () {  },);
-                            },
-                          ),
-                        );
-                      },
+                      onTap: widget.onTap,
                       child: Text(
                         'Register now',
                         style: TextStyle(
-                          color: Colors.blue,
+                          color: colorScheme.secondary,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
                   ],
-                ),
+                )
               ],
             ),
           ),
@@ -181,3 +195,4 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 }
+

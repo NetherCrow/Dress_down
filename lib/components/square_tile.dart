@@ -10,12 +10,18 @@ class SquareTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Container(
-      padding: EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.white),
+        color: colorScheme.surface, // Background that matches card surfaces
         borderRadius: BorderRadius.circular(16),
-        color: Colors.grey[200],
+        border: Border.all(
+          color: colorScheme.outlineVariant,
+          width: 1.2,
+        ),
       ),
       child: Image.asset(
         imagePath,

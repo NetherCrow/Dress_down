@@ -1,8 +1,16 @@
-import 'package:dress_down_2/auth_page.dart';
-import 'package:dress_down_2/intro_page.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-
+import 'package:firebase_core/firebase_core.dart';
+import 'package:provider/provider.dart';
+import 'package:dress_down_2/Theme/dark_mode.dart';
+import 'package:dress_down_2/Theme/light_mode.dart';
+import 'package:dress_down_2/Theme/theme_provider.dart';
+import 'package:dress_down_2/auth_page.dart';
+import 'package:dress_down_2/profile_page.dart';
+import 'package:dress_down_2/report_page.dart';
+import 'package:dress_down_2/setting_page.dart';
+import 'package:dress_down_2/alarm_page.dart';
+import 'package:dress_down_2/contacts_page.dart';
+import 'package:dress_down_2/history.dart';
 import 'firebase_options.dart';
 
 void main() async{
@@ -10,7 +18,12 @@ void main() async{
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeProvider(),
+      child: const MyApp(),
+  ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -19,9 +32,22 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: AuthPage(),
+      home: const AuthPage(),
+      themeMode: themeProvider.themeMode,
+      theme: lightMode,
+      darkTheme: darkMode,
+      routes: {
+        '/report': (_) => const ReportPage(),
+        '/profile': (_) => const ProfilePage(),
+        '/Alarm': (_) => const AlarmPage(),
+        '/contacts': (_) => const ContactsPage(),
+        '/History': (_) => const History(),
+        '/Settings': (_) => const SettingPage()
+      },
     );
   }
 }
